@@ -1,0 +1,363 @@
+{
+  "info": {
+    "name": "EcoHome Store API",
+    "description": "Colección completa de pruebas para el backend de EcoHome Store.\nCubre autenticación JWT, CRUD de productos, trazabilidad, estadísticas de usuario y chat.\n\nFlujo recomendado:\n1. Ejecutar 'Login' → el token se guarda automáticamente.\n2. Probar las carpetas Productos, Usuario y Chat (usan el token guardado).\n3. Verificar Health check.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "URL base del backend. Cambiar si se despliega en otro host/puerto."
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "JWT. Se llena automáticamente al ejecutar el request 'Login'."
+    },
+    {
+      "key": "productId",
+      "value": "1",
+      "type": "string",
+      "description": "ID del producto a usar en PUT y DELETE. Ajustar según el ID retornado por POST /api/products."
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Registro e inicio de sesión. No requieren token.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('Token guardado:', res.token.substring(0, 30) + '...');",
+                  "} else {",
+                  "    console.warn('No se recibió token en la respuesta.');",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene token', () => pm.expect(res).to.have.property('token'));",
+                  "pm.test('Tiene username', () => pm.expect(res).to.have.property('username'));",
+                  "pm.test('Tiene role', () => pm.expect(res).to.have.property('role'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"ventas_admin\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Inicia sesión con username + password. Devuelve un JWT que se guarda automáticamente en la variable {{token}}.\n\nCredenciales de prueba:\n- ventas_admin / password123 (rol: VENTAS)\n- logistica_op / password123 (rol: LOGISTICA)\n- soporte_01   / password123 (rol: SOPORTE)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const res = pm.response.json();",
+                  "pm.test('Tiene username', () => pm.expect(res).to.have.property('username'));",
+                  "pm.test('Tiene role', () => pm.expect(res).to.have.property('role'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nuevo_usuario\",\n  \"email\": \"nuevo@ecohome.co\",\n  \"password\": \"secret123\",\n  \"role\": \"VENTAS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Registra un nuevo usuario. Devuelve username y role. Roles disponibles: VENTAS, LOGISTICA, SOPORTE."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Productos",
+      "description": "CRUD completo de productos. Todos los endpoints requieren JWT en el header Authorization.",
+      "item": [
+        {
+          "name": "Listar productos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Es array', () => pm.expect(res).to.be.an('array'));",
+                  "if (res.length > 0) {",
+                  "    pm.test('Producto tiene creator_username', () => pm.expect(res[0]).to.have.property('creator_username'));",
+                  "    pm.test('Producto tiene price', () => pm.expect(res[0]).to.have.property('price'));",
+                  "    // Guardar el primer ID para usarlo en PUT/DELETE",
+                  "    pm.collectionVariables.set('productId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Retorna todos los productos con nombre, precio, stock y creator_username (trazabilidad)."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const res = pm.response.json();",
+                  "pm.test('Tiene id', () => pm.expect(res).to.have.property('id'));",
+                  "pm.test('Tiene creator_username', () => pm.expect(res).to.have.property('creator_username'));",
+                  "// Guardar el ID del producto creado",
+                  "pm.collectionVariables.set('productId', res.id);",
+                  "console.log('Producto creado con ID:', res.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bolsa Compostable 10L\",\n  \"description\": \"Bolsa 100% compostable certificada EN13432\",\n  \"price\": 8.50,\n  \"stock\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Crea un nuevo producto. El creador se toma automáticamente del JWT (created_by = userId del token)."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Nombre actualizado', () => pm.expect(res.name).to.eql('Bolsa Compostable 10L - Actualizada'));",
+                  "pm.test('Tiene creator_username', () => pm.expect(res).to.have.property('creator_username'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bolsa Compostable 10L - Actualizada\",\n  \"description\": \"Bolsa 100% compostable certificada EN13432 - edición especial\",\n  \"price\": 9.99,\n  \"stock\": 450\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}"]
+            },
+            "description": "Actualiza un producto existente por ID. Usa la variable {{productId}} que se llena automáticamente al crear o listar."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}"]
+            },
+            "description": "Elimina el producto indicado por {{productId}}. Retorna 204 sin cuerpo si fue exitoso."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuario",
+      "description": "Estadísticas y datos del usuario autenticado.",
+      "item": [
+        {
+          "name": "Mis estadísticas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Tiene username', () => pm.expect(res).to.have.property('username'));",
+                  "pm.test('Tiene role', () => pm.expect(res).to.have.property('role'));",
+                  "pm.test('Tiene product_count', () => pm.expect(res).to.have.property('product_count'));",
+                  "pm.test('product_count es número', () => pm.expect(res.product_count).to.be.a('number'));",
+                  "console.log(`${res.username} ha creado ${res.product_count} producto(s).`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "stats"]
+            },
+            "description": "Retorna el contador dinámico de productos creados por el usuario autenticado: {username, role, product_count}. Esto alimenta el indicador 'Usuario (N)' en web y móvil."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "description": "Historial de mensajes vía HTTP. La comunicación en tiempo real se hace por Socket.IO.",
+      "item": [
+        {
+          "name": "Historial de mensajes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Es array', () => pm.expect(res).to.be.an('array'));",
+                  "pm.test('Máximo 10 mensajes', () => pm.expect(res.length).to.be.at.most(10));",
+                  "if (res.length > 0) {",
+                  "    pm.test('Mensaje tiene text', () => pm.expect(res[0]).to.have.property('text'));",
+                  "    pm.test('Mensaje tiene username', () => pm.expect(res[0]).to.have.property('username'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "history"]
+            },
+            "description": "Retorna los últimos 10 mensajes del chat ordenados cronológicamente. Los mensajes en tiempo real se gestionan por Socket.IO (evento 'new-message')."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "description": "Verificación de estado del servidor.",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Status UP', () => pm.expect(res.status).to.eql('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Endpoint público sin autenticación. Útil para verificar que el servidor está corriendo antes de ejecutar el resto de las pruebas."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
