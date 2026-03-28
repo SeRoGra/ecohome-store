@@ -1,0 +1,59 @@
+/* Root layout — mismo que ChatScreen (.cr) */
+.pr{display:flex;height:100vh;overflow:hidden;background:var(--bg-base);}
+
+/* Reutiliza estilos de sidebar (.cs, .cs-*) definidos en ChatScreen.css */
+
+/* ── Main panel ── */
+.pm{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* Header */
+.pm-header{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;border-bottom:1px solid var(--border);background:var(--bg-surface);flex-shrink:0;}
+.pm-header__l{display:flex;align-items:center;gap:8px;}
+.pm-icon{width:18px;height:18px;color:var(--text-muted);flex-shrink:0;}
+.pm-title{font-family:var(--font-display);font-size:15px;font-weight:700;}
+.pm-desc{font-size:12px;color:var(--text-muted);padding-left:10px;border-left:1px solid var(--border);margin-left:2px;}
+
+/* Botón nuevo producto */
+.pm-add-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);background:var(--green);color:#0a0c10;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:var(--transition);}
+.pm-add-btn:hover{opacity:.88;}
+.pm-add-btn svg{width:14px;height:14px;}
+
+/* Error banner */
+.err-banner{display:flex;align-items:center;gap:8px;padding:10px 24px;background:rgba(239,68,68,.08);border-bottom:1px solid rgba(239,68,68,.2);color:#f87171;font-size:13px;}
+.err-banner svg{width:16px;height:16px;flex-shrink:0;}
+
+/* ── Formulario ── */
+.pm-form{padding:20px 24px;border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;flex-direction:column;gap:12px;}
+.pm-form__title{font-size:14px;font-weight:700;color:var(--text-primary);}
+.pm-form__row{display:flex;gap:12px;}
+.pm-form__field{display:flex;flex-direction:column;gap:4px;flex:1;}
+.pm-form__field label{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;}
+.pm-form__field input{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:13px;padding:8px 12px;outline:none;transition:var(--transition);}
+.pm-form__field input:focus{border-color:var(--green);box-shadow:0 0 0 2px var(--green-dim);}
+.pm-form__actions{display:flex;gap:10px;justify-content:flex-end;}
+.pm-cancel-btn{padding:8px 16px;border-radius:var(--radius-sm);background:transparent;border:1px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);}
+.pm-cancel-btn:hover{border-color:var(--text-secondary);}
+.pm-submit-btn{padding:8px 16px;border-radius:var(--radius-sm);background:var(--green);color:#0a0c10;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:var(--transition);}
+.pm-submit-btn:hover:not(:disabled){opacity:.88;}
+.pm-submit-btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* ── Lista de productos ── */
+.pm-list{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px;}
+
+.pm-loading{display:flex;align-items:center;gap:12px;padding:60px 0;align-self:center;color:var(--text-muted);font-size:14px;}
+.pm-loading__spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+.pm-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text-muted);font-size:14px;text-align:center;padding:60px 0;}
+.pm-empty div{font-size:40px;margin-bottom:4px;}
+
+/* Tarjeta de producto */
+.pm-card{display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;transition:var(--transition);}
+.pm-card:hover{border-color:var(--border-accent);background:var(--bg-elevated);}
+.pm-card__body{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;}
+.pm-card__name{font-size:14px;font-weight:700;color:var(--text-primary);}
+.pm-card__desc{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.pm-card__creator{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);margin-top:6px;}
+.pm-card__creator svg{width:12px;height:12px;flex-shrink:0;}
+.pm-card__creator strong{color:var(--green);}
+.pm-card__meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;padding-left:16px;}
+.pm-card__price{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--green);}
+.pm-card__stock{font-size:11px;font-weight:600;color:var(--text-muted);white-space:nowrap;}
