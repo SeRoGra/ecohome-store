@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getProducts, createProduct, getUserStats } from '../api/chatApi';
+import './ChatScreen.css';
 import './ProductsScreen.css';
 
 const ROLE_COLORS = { VENTAS:'#34d399', LOGISTICA:'#60a5fa', SOPORTE:'#fbbf24', USER:'#a78bfa' };

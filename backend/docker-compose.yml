@@ -23,7 +23,7 @@ services:
       DB_HOST:     postgres
       DB_PASSWORD: ecohome_pass
       JWT_SECRET:  XioW5FPP7WBz/gmjSrUb/Xf19BIT7CQ57r4h3ueju4c=
-      CORS_ORIGIN: http://localhost:3000,http://localhost:64857
+      CORS_ORIGIN: ""
     ports:
       - "8080:8080"
     depends_on:

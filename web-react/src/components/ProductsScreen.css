@@ -46,7 +46,7 @@
 .pm-empty div{font-size:40px;margin-bottom:4px;}
 
 /* Tarjeta de producto */
-.pm-card{display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;transition:var(--transition);}
+.pm-card{display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;transition:var(--transition);}
 .pm-card:hover{border-color:var(--border-accent);background:var(--bg-elevated);}
 .pm-card__body{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;}
 .pm-card__name{font-size:14px;font-weight:700;color:var(--text-primary);}
